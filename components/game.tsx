@@ -43,14 +43,14 @@ const NumberDisplay: FC<{
 
   const { numerator, denominator, isNegative } = input;
 
-  let toClassName = isFirstNumber && !isLastResult ? "yellow-900" : "white";
+  const viaColorClass =
+    isFirstNumber && !isLastResult ? "via-yellow-900" : "via-white";
+  const fractionClassName = `flex flex-col justify-between items-center px-1 bg-gradient-to-b from-transparent from-50% ${viaColorClass} via-[calc(50%+2px)] to-transparent to-[calc(50%+2px)]`;
 
   return (
     <div className="flex items-center gap-2">
       {isNegative && <div>-</div>}
-      <div
-        className={`flex flex-col justify-between items-center px-1 bg-gradient-to-b from-transparent from-50% via-${toClassName} via-[calc(50%+2px)] to-transparent to-[calc(50%+2px)]`}
-      >
+      <div className={fractionClassName}>
         <div>{numerator}</div>
         <div>{denominator}</div>
       </div>
