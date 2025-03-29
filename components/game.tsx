@@ -244,7 +244,9 @@ export default function Game() {
           ...currentState.history,
           `${fractionToString(
             firstNumber.value
-          )} ${selectedOperator} ${number} = ${fractionToString(result)}`,
+          )} ${selectedOperator} ${fractionToString(
+            number
+          )} = ${fractionToString(result)}`,
         ];
 
         const newState = {
