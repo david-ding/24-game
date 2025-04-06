@@ -34,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import SoundPlayer from "@/lib/sounds";
 
 type GameState = {
   numbers: (number | Fraction)[];
@@ -114,6 +115,7 @@ export default function Game() {
   useEffect(() => {
     generateNumbers();
     startTimer();
+    SoundPlayer.preloadSounds();
 
     return () => {
       if (timerIntervalRef.current) {
@@ -167,6 +169,8 @@ export default function Game() {
 
   const switchPlayer = (isSolutionsShown = false) => {
     const timeToAdd = elapsedTime + (isSolutionsShown ? 60 : 0);
+
+    SoundPlayer.play("switchPlayer");
 
     // Save current player's time
     if (currentPlayer === 1) {
@@ -238,6 +242,8 @@ export default function Game() {
   const handleNumberClick = (number: number | Fraction, index: number) => {
     if (isPaused || isGameOver) return;
 
+    SoundPlayer.play("click");
+
     // If clicking the same number that's already selected, unselect it
     if (firstNumber && firstNumber.index === index) {
       setFirstNumber(null);
@@ -285,6 +291,7 @@ export default function Game() {
 
         if (newNumbers.length === 1) {
           if (Math.abs(coerceIntoNumber(newNumbers[0]) - 24) < 0.0001) {
+            SoundPlayer.play("success");
             setResult("correct");
             setMessage("Correct! You made 24!");
             setIsPaused(true);
@@ -295,6 +302,7 @@ export default function Game() {
               switchPlayer();
             }, 2000);
           } else {
+            SoundPlayer.play("error");
             setResult("incorrect");
             setMessage(
               `Got ${fractionToString(newNumbers[0])}, but needed 24!`
@@ -311,6 +319,7 @@ export default function Game() {
 
   const handleOperatorClick = (operator: string) => {
     if (!isPaused && !isGameOver && firstNumber !== null) {
+      SoundPlayer.play("click");
       setSelectedOperator(operator);
     }
   };
@@ -345,6 +354,7 @@ export default function Game() {
   };
 
   const showAnswer = () => {
+    SoundPlayer.play("showAnswer");
     setShowSolutionsModal(true);
     setIsPaused(true);
   };
