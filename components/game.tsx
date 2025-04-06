@@ -19,11 +19,25 @@ import {
   Timer,
   Trophy,
   Undo,
+  Lightbulb,
 } from "lucide-react";
 import { FC, useEffect, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type GameState = {
   numbers: (number | Fraction)[];
+  solutions: string[];
   history: string[];
 };
 
@@ -62,6 +76,7 @@ export default function Game() {
   const [gameStates, setGameStates] = useState<GameState[]>([]);
   const [currentState, setCurrentState] = useState<GameState>({
     numbers: [],
+    solutions: [],
     history: [],
   });
   const [firstNumber, setFirstNumber] = useState<{
@@ -91,6 +106,9 @@ export default function Game() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(Date.now());
+
+  // Add this state near your other state declarations
+  const [showSolutionsModal, setShowSolutionsModal] = useState(false);
 
   // Initialize the game
   useEffect(() => {
@@ -147,19 +165,21 @@ export default function Game() {
     setElapsedTime(0);
   };
 
-  const switchPlayer = () => {
+  const switchPlayer = (isSolutionsShown = false) => {
+    const timeToAdd = elapsedTime + (isSolutionsShown ? 60 : 0);
+
     // Save current player's time
     if (currentPlayer === 1) {
       setPlayer1Score((prev) => ({
         ...prev,
-        totalTime: prev.totalTime + elapsedTime,
+        totalTime: prev.totalTime + timeToAdd,
         solvedPuzzles: prev.solvedPuzzles + 1,
       }));
       setCurrentPlayer(2);
     } else {
       setPlayer2Score((prev) => ({
         ...prev,
-        totalTime: prev.totalTime + elapsedTime,
+        totalTime: prev.totalTime + timeToAdd,
         solvedPuzzles: prev.solvedPuzzles + 1,
       }));
       setCurrentPlayer(1);
@@ -184,6 +204,7 @@ export default function Game() {
     const puzzle = getRandomPuzzle();
     const initialState = {
       numbers: [...puzzle.numbers],
+      solutions: [...puzzle.solutions],
       history: [],
     };
     setGameStates([initialState]);
@@ -250,6 +271,7 @@ export default function Game() {
         ];
 
         const newState = {
+          ...currentState,
           numbers: newNumbers,
           history: newHistory,
         };
@@ -319,6 +341,20 @@ export default function Game() {
       setResult(null);
       setMessage("");
       setLastResultIndex(null);
+    }
+  };
+
+  const showAnswer = () => {
+    setShowSolutionsModal(true);
+    setIsPaused(true);
+  };
+
+  const onShowAnswerModalOpenChange = (isOpen: boolean) => {
+    setShowSolutionsModal(isOpen);
+
+    if (!isOpen) {
+      switchPlayer(true);
+      setIsPaused(false);
     }
   };
 
@@ -407,6 +443,24 @@ export default function Game() {
               Reset
             </Button>
           </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  onClick={showAnswer}
+                  disabled={isPaused}
+                  className="flex items-center gap-2"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  Show Answer
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>1 minute penalty</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* History */}
@@ -503,6 +557,37 @@ export default function Game() {
           </div>
         </div>
       </div>
+
+      {/* Add this Dialog component */}
+      <Dialog
+        open={showSolutionsModal}
+        onOpenChange={onShowAnswerModalOpenChange}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Solutions</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {currentState.solutions.map((solution, index) => (
+              <div
+                key={index}
+                className="p-3 bg-gray-50 rounded-lg text-center text-lg"
+              >
+                {solution}
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex justify-center">
+            <Button
+              variant="default"
+              onClick={() => onShowAnswerModalOpenChange(false)}
+              className="w-full"
+            >
+              Proceed
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
